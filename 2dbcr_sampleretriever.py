@@ -13,8 +13,8 @@ import csv
 import datetime
 import PySimpleGUI as sg
 
-FILES = '/Users/timniemeijer/Downloads/code_reader_files'
-EXPORTFILES = '/Users/timniemeijer/Downloads'
+#FILES = '/Users/timniemeijer/Downloads/code_reader_files'
+#EXPORTFILES = '/Users/timniemeijer/Downloads'
 
 def create_output_name():
     """Uses the datetime module to generate a name for the outputfile
@@ -51,12 +51,12 @@ def make_list_crfiles(outputlist,filespath):
     else:
         return outputlist
 
-def make_output_pick_list(combined_cr_list,outputlist):
+def make_output_pick_list(combined_cr_list,outputlist, samplesheet):
     """check input list against source list
     input list should consist of position, tubeID
     output is sourceplate, sourceplate position, targetplate position"""
 
-    with open(input('Pad naar werklijst:'),'r') as sample_list:
+    with open(samplesheet,'r') as sample_list:
         header = ['tube','sourceplate','sourceplate position',
                         'target position']
         outputlist.append(header)
@@ -80,9 +80,9 @@ def make_output_pick_list(combined_cr_list,outputlist):
     
     return outputlist
 
-def csv_sample_list_export(pick_list):
+def csv_sample_list_export(pick_list,exportdir):
     """Changes directory to exportfiles dir, creates .csv from the picklist"""
-    os.chdir(EXPORTFILES)
+    os.chdir(exportdir)
     with open(create_output_name(), 'w') as wrfile:
         writer = csv.writer(wrfile)
         data = pick_list
@@ -93,10 +93,13 @@ def csv_sample_list_export(pick_list):
 
     
 layout = [
-    [sg.Text("Input samplesheet:"),sg.Input(key="-IN-"),
+    [sg.Text("Input samplesheet:"),sg.Input(key="-SAMPLESIN-"),
     sg.FileBrowse(file_types=(("CSV files","*.csv*"),))],
     
     [sg.Text("Export picklist to folder:"),sg.Input(key="-EXPORT-"),
+    sg.FolderBrowse()],
+
+    [sg.Text("BCR files folder:"),sg.Input(key="-BCRFILES-"),
     sg.FolderBrowse()],
 
     [sg.Text("""Click 'Run' to run this program :-""",size=(120, 1))],
@@ -110,19 +113,11 @@ while True:
     if event in (sg.WINDOW_CLOSED, "Exit"):
         break
     if event == 'Run':
-        sg.popup_error("Not there yet")
+        combined_code_reader_list = []
+        output_pick_list = []
+        make_list_crfiles(combined_code_reader_list,values["-BCRFILES-"])
+        make_output_pick_list(combined_code_reader_list,output_pick_list,
+                              values["-SAMPLESIN-"])
+        csv_sample_list_export(output_pick_list,values["-EXPORT-"])
 
 window.close()
-
-
-"""    
-combined_code_reader_list = []
-output_pick_list = []
-
-make_list_crfiles(combined_code_reader_list,FILES)
-
-make_output_pick_list(combined_code_reader_list,output_pick_list)
-
-csv_sample_list_export(output_pick_list)
-
-"""
