@@ -119,5 +119,6 @@ while True:
         make_output_pick_list(combined_code_reader_list,output_pick_list,
                               values["-SAMPLESIN-"])
         csv_sample_list_export(output_pick_list,values["-EXPORT-"])
+        sg.popup_no_titlebar("Done! :)")
 
 window.close()
