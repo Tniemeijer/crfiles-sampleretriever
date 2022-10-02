@@ -41,7 +41,8 @@ def make_list_crfiles(outputlist,filespath):
             for crline in crfile:
                 crline = crline.strip('\n')
                 crline = crline.split(',')
-                outputlist.append(crline[0:3])
+                if len(crline[1]) > 0:
+                    outputlist.append(crline[0:3])
     tubeslist = [crline[1] for crline in outputlist]
     if check_duplicate_tube_entries(tubeslist):
         print('FOUT: Er zijn duplicaten gevonden!')
