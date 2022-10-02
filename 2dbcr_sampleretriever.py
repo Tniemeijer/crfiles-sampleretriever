@@ -20,7 +20,7 @@ def create_output_name():
     """Uses the datetime module to generate a name for the outputfile
     in the following format: pickfile_YYYYmmddHHMMSS"""
     output_name = datetime.datetime.now()
-    output_name = 'pickfile_'+ output_name.strftime("%Y%m%d%H%M%S")+ '.csv'
+    output_name = 'TubePickfile_'+ output_name.strftime("%Y%m%d%H%M%S")+ '.csv'
     return output_name
 
 def check_duplicate_tube_entries(tubeslist):
