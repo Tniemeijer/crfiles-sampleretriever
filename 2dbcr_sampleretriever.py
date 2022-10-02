@@ -90,26 +90,39 @@ def csv_sample_list_export(pick_list):
             writer.writerow(line)
 
 
-def gui():
-    sg.theme("Dark Teal 7")
 
-    layout = [
-        [sg.Text("""Click 'Run' to run this program :-""",size=(120, 1))],
-        [sg.Submit('Run'), sg.Cancel()],
-    ]
     
-    window = sg.Window("TubeFindr - v1.0.0",layout)
+layout = [
+    [sg.Text("Input samplesheet:"),sg.Input(key="-IN-"),
+    sg.FileBrowse(file_types=(("CSV files","*.csv*"),))],
+    
+    [sg.Text("Export picklist to folder:"),sg.Input(key="-EXPORT-"),
+    sg.FolderBrowse()],
 
-    window_output = window.read()
-    window.close()
+    [sg.Text("""Click 'Run' to run this program :-""",size=(120, 1))],
+    [sg.Button('Run')],
+]
 
-    if window_output ==('Run',{}):
-        combined_code_reader_list = []
-        output_pick_list = []
+window = sg.Window("TubeFindr - v1.0.0",layout)
 
-        make_list_crfiles(combined_code_reader_list,FILES)
+while True:
+    event, values = window.read()
+    if event in (sg.WINDOW_CLOSED, "Exit"):
+        break
+    if event == 'Run':
+        sg.popup_error("Not there yet")
 
-        make_output_pick_list(combined_code_reader_list,output_pick_list)
+window.close()
 
-        csv_sample_list_export(output_pick_list)
 
+"""    
+combined_code_reader_list = []
+output_pick_list = []
+
+make_list_crfiles(combined_code_reader_list,FILES)
+
+make_output_pick_list(combined_code_reader_list,output_pick_list)
+
+csv_sample_list_export(output_pick_list)
+
+"""
