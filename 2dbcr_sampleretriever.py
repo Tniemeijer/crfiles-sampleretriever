@@ -3,9 +3,7 @@ Combining code reader files, asking for the path to the samplesheet
 searching the combined codereader data for the positions of the samples
 creating a .csv with these source and target positions.
 
-script should check for double files
-
-/Users/timniemeijer/Documents/werklijst_ngs.csv
+script should also check for double files
 
 Author: Tim Niemeijer
 """
