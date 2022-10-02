@@ -11,6 +11,7 @@ Author: Tim Niemeijer
 import os
 import csv
 import datetime
+import PySimpleGUI as sg
 
 FILES = '/Users/timniemeijer/Downloads/code_reader_files'
 EXPORTFILES = '/Users/timniemeijer/Downloads'
@@ -88,11 +89,27 @@ def csv_sample_list_export(pick_list):
         for line in data:
             writer.writerow(line)
 
-combined_code_reader_list = []
-output_pick_list = []
 
-make_list_crfiles(combined_code_reader_list,FILES)
+def gui():
+    sg.theme("Dark Teal 7")
 
-make_output_pick_list(combined_code_reader_list,output_pick_list)
+    layout = [
+        [sg.Text("""Click 'Run' to run this program :-""",size=(120, 1))],
+        [sg.Submit('Run'), sg.Cancel()],
+    ]
+    
+    window = sg.Window("TubeFindr - v1.0.0",layout)
 
-csv_sample_list_export(output_pick_list)
+    window_output = window.read()
+    window.close()
+
+    if window_output ==('Run',{}):
+        combined_code_reader_list = []
+        output_pick_list = []
+
+        make_list_crfiles(combined_code_reader_list,FILES)
+
+        make_output_pick_list(combined_code_reader_list,output_pick_list)
+
+        csv_sample_list_export(output_pick_list)
+
