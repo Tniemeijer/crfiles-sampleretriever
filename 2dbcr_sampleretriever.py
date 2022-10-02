@@ -93,16 +93,16 @@ def csv_sample_list_export(pick_list,exportdir):
 
     
 layout = [
-    [sg.Text("Input samplesheet:"),sg.Input(key="-SAMPLESIN-"),
+    [sg.Text("Input samplesheet:       "),sg.Input(key="-SAMPLESIN-"),
     sg.FileBrowse(file_types=(("CSV files","*.csv*"),))],
     
     [sg.Text("Export picklist to folder:"),sg.Input(key="-EXPORT-"),
     sg.FolderBrowse()],
 
-    [sg.Text("BCR files folder:"),sg.Input(key="-BCRFILES-"),
+    [sg.Text("BCR files folder:           "),sg.Input(key="-BCRFILES-"),
     sg.FolderBrowse()],
 
-    [sg.Text("""Click 'Run' to run this program :-""",size=(120, 1))],
+    [sg.Text("""Click 'Run' to run this program :""",size=(120, 1))],
     [sg.Button('Run')],
 ]
 
