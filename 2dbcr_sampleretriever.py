@@ -90,35 +90,55 @@ def csv_sample_list_export(pick_list,exportdir):
             writer.writerow(line)
 
 
+def main():
+        
+    layout = [
+        [sg.Text("Input samplesheet:       "),sg.Input(key="-SAMPLESIN-"),
+        sg.FileBrowse(file_types=(("CSV files","*.csv*"),))],
+        
+        [sg.Text("Export picklist to folder:"),sg.Input(key="-EXPORT-"),
+        sg.FolderBrowse()],
 
-    
-layout = [
-    [sg.Text("Input samplesheet:       "),sg.Input(key="-SAMPLESIN-"),
-    sg.FileBrowse(file_types=(("CSV files","*.csv*"),))],
-    
-    [sg.Text("Export picklist to folder:"),sg.Input(key="-EXPORT-"),
-    sg.FolderBrowse()],
+        [sg.Text("BCR files folder:           "),sg.Input(key="-BCRFILES-"),
+        sg.FolderBrowse()],
 
-    [sg.Text("BCR files folder:           "),sg.Input(key="-BCRFILES-"),
-    sg.FolderBrowse()],
+        [sg.Text("""Click 'Run' to run this program :""",size=(120, 1))],
+        [sg.Button('Run')],
+    ]
 
-    [sg.Text("""Click 'Run' to run this program :""",size=(120, 1))],
-    [sg.Button('Run')],
-]
+    window = sg.Window("TubeFindr - v1.0.1",layout)
 
-window = sg.Window("TubeFindr - v1.0.0",layout)
+    while True:
+        event, values = window.read()
+        if event in (sg.WINDOW_CLOSED, "Exit"):
+            break
+        if event == 'Run':
+            ACTIVE = True
+            while ACTIVE:
+                combined_code_reader_list = []
+                output_pick_list = []
+                try:
+                    make_list_crfiles(combined_code_reader_list,values["-BCRFILES-"])
+                except IndexError:
+                    sg.popup_error("Selected directory is not compatible")
+                    ACTIVE = False
+                except FileNotFoundError:
+                    sg.popup_error("Files not found, please select a folder")
+                    ACTIVE = False
+                try:
+                    make_output_pick_list(combined_code_reader_list,output_pick_list,
+                                    values["-SAMPLESIN-"])
+                except IndexError:
+                    sg.popup_error("Inserted file not compatible")
+                    ACTIVE = False
+                except FileNotFoundError:
+                    sg.popup_error("File not found, please select a file")
+                    ACTIVE = False
+                csv_sample_list_export(output_pick_list,values["-EXPORT-"])
+                sg.popup_no_titlebar("Done! :)")
+                ACTIVE = False
 
-while True:
-    event, values = window.read()
-    if event in (sg.WINDOW_CLOSED, "Exit"):
-        break
-    if event == 'Run':
-        combined_code_reader_list = []
-        output_pick_list = []
-        make_list_crfiles(combined_code_reader_list,values["-BCRFILES-"])
-        make_output_pick_list(combined_code_reader_list,output_pick_list,
-                              values["-SAMPLESIN-"])
-        csv_sample_list_export(output_pick_list,values["-EXPORT-"])
-        sg.popup_no_titlebar("Done! :)")
+    window.close()
 
-window.close()
+if __name__ == "__name__":
+    main()
