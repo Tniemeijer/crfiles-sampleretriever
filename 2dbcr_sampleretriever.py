@@ -114,7 +114,7 @@ layout = [
 
     [sg.Table(values= data, headings= heading,
      key = '-TABLE-',
-      auto_size_columns= True, expand_y= True, num_rows= 48)],
+      auto_size_columns= False, def_col_width= 20,  expand_y= True, num_rows= 24, size= (450,60))],
 
 ]
 
@@ -149,18 +149,14 @@ while True:
                 sg.popup_error("File not found, please select a file",
                 title="Error")
                 break
-            sg.popup_no_titlebar("Done! :)")
             data =[i for i in output_pick_list[1:]]
             window['-TABLE-'].update(values = data)
             break
     if event == 'Export':
-        if len(output_pick_list) > 1:
-            try:
-                csv_sample_list_export(output_pick_list,values["-EXPORT-"])
-            except FileNotFoundError:
-                sg.popup_error("Output folder not found, please select a folder",
-                title="Error")
-        else:
-            sg.popup_error("Nothing to export",title="Error")
+        try:
+            csv_sample_list_export(output_pick_list,values["-EXPORT-"])
+        except FileNotFoundError:
+            sg.popup_error("Output folder not found, please select a folder",
+            title="Error")
 window.close()
 
