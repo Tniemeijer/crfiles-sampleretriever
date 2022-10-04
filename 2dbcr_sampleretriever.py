@@ -121,7 +121,6 @@ window = sg.Window("TubeFindr - v1.0.1",layout)
 
 while True:
     event, values = window.read()
-    window.move_to_center()
     if event in (sg.WINDOW_CLOSED, "Exit"):
         break
     combined_code_reader_list = []
