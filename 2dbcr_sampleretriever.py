@@ -26,8 +26,6 @@ def create_output_name():
 def check_duplicate_tube_entries(tubeslist):
     tubesset = set(tubeslist)
     if len(tubeslist) != len(tubesset):
-        print(tubesset)
-        print(tubeslist)
         return True
     else:
         return False
@@ -117,7 +115,7 @@ layout = [
 
 ]
 
-window = sg.Window("TubeFindr - v1.0.1",layout)
+window = sg.Window("TubeFindr - v1.0.2",layout)
 
 while True:
     event, values = window.read()
@@ -137,6 +135,9 @@ while True:
                 sg.popup_error("Files not found, please select a folder",
                 title="Error")
                 break
+            except OSError:
+                sg.popup_error("Files not found, please select a folder",
+                title="Error")
             try:
                 make_output_pick_list(combined_code_reader_list,output_pick_list,
                                 values["-SAMPLESIN-"])
@@ -156,5 +157,7 @@ while True:
         except FileNotFoundError:
             sg.popup_error("Output folder not found, please select a folder",
             title="Error")
+        except OSError:
+            sg.popup_error("Output folder not found, please select a folder",
+            title="Error")
 window.close()
-
