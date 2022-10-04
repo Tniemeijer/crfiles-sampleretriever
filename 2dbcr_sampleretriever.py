@@ -46,10 +46,9 @@ def make_list_crfiles(outputlist,filespath):
                     outputlist.append(crline[0:3])
     tubeslist = [crline[1] for crline in outputlist]
     if check_duplicate_tube_entries(tubeslist):
-        print('FOUT: Er zijn duplicaten gevonden!')
-        exit()
-    else:
-        return outputlist
+        sg.popup_error('FOUT: Er zijn duplicaten gevonden!',title="Error")
+        
+    return outputlist
 
 def make_output_pick_list(combined_cr_list,outputlist, samplesheet):
     """check input list against source list
