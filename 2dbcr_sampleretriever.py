@@ -11,9 +11,6 @@ import csv
 import datetime
 import PySimpleGUI as sg
 
-#FILES = '/Users/timniemeijer/Downloads/code_reader_files'
-#EXPORTFILES = '/Users/timniemeijer/Downloads'
-
 def create_output_name():
     """
     Uses the datetime module to generate a name for the outputfile
@@ -22,6 +19,7 @@ def create_output_name():
     output_name = datetime.datetime.now()
     output_name = 'TubePickfile_'+ output_name.strftime("%Y%m%d%H%M%S")+ '.csv'
     return output_name
+
 
 def check_duplicate_tube_entries(tubeslist):
     """
@@ -33,6 +31,7 @@ def check_duplicate_tube_entries(tubeslist):
         return True
     else:
         return False
+
 
 def make_list_crfiles(outputlist,filespath):
     """returns source list with position, tubeID, plate barcode"""
@@ -51,6 +50,7 @@ def make_list_crfiles(outputlist,filespath):
         sg.popup_error('FOUT: Er zijn duplicaten gevonden!',title="Error")
         
     return outputlist
+
 
 def make_output_pick_list(combined_cr_list,outputlist, samplesheet):
     """check input list against source list
@@ -81,6 +81,7 @@ def make_output_pick_list(combined_cr_list,outputlist, samplesheet):
     
     return outputlist
 
+
 def csv_sample_list_export(pick_list,exportdir):
     """Changes directory to exportfiles dir, creates .csv from the picklist"""
     os.chdir(exportdir)
@@ -95,16 +96,14 @@ def main():
     """
     Run the code
     """
+    sg.theme("Reddit")
 
     data = []
     heading = ['tube','sourceplate','sourceplate position',
-                            'target position']
-
-        
+                            'target position']                           
     layout = [
         [sg.Text("Input samplesheet:       "),sg.Input(key="-SAMPLESIN-"),
         sg.FileBrowse(file_types=(("CSV files","*.csv*"),))],
-        
         [sg.Text("BCR files folder:           "),sg.Input(key="-BCRFILES-"),
         sg.FolderBrowse()],
 
