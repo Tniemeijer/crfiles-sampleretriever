@@ -2,9 +2,7 @@
 Combining code reader files, asking for the path to the samplesheet
 searching the combined codereader data for the positions of the samples
 creating a .csv with these source and target positions.
-
-script should also check for double files
-
+script also checks for double barcodes.
 Author: Tim Niemeijer
 """
 
@@ -17,13 +15,19 @@ import PySimpleGUI as sg
 #EXPORTFILES = '/Users/timniemeijer/Downloads'
 
 def create_output_name():
-    """Uses the datetime module to generate a name for the outputfile
-    in the following format: pickfile_YYYYmmddHHMMSS"""
+    """
+    Uses the datetime module to generate a name for the outputfile
+    in the following format: pickfile_YYYYmmddHHMMSS
+    """
     output_name = datetime.datetime.now()
     output_name = 'TubePickfile_'+ output_name.strftime("%Y%m%d%H%M%S")+ '.csv'
     return output_name
 
 def check_duplicate_tube_entries(tubeslist):
+    """
+    Checks if the length of the set (without duplicates)
+    differs in length to the list with tubes.
+    """
     tubesset = set(tubeslist)
     if len(tubeslist) != len(tubesset):
         return True
@@ -88,6 +92,9 @@ def csv_sample_list_export(pick_list,exportdir):
 
 
 def main():
+    """
+    Run the code
+    """
 
     data = []
     heading = ['tube','sourceplate','sourceplate position',
@@ -114,7 +121,8 @@ def main():
 
         [sg.Table(values= data, headings= heading,
         key = '-TABLE-',
-        auto_size_columns= False, def_col_width= 20,  expand_y= True, num_rows= 24, size= (450,60))],
+        auto_size_columns= False, def_col_width= 20,  expand_y= True,
+        num_rows= 24, size= (450,60))],
 
     ]
 
@@ -129,27 +137,36 @@ def main():
         if event == 'Run':
             while True:
                 try:
-                    make_list_crfiles(combined_code_reader_list,values["-BCRFILES-"])
+                    make_list_crfiles(
+                        combined_code_reader_list,values["-BCRFILES-"]
+                        )
                 except IndexError:
-                    sg.popup_error("Selected directory is not compatible",
-                    title="Error")
+                    sg.popup_error(
+                        "Selected directory is not compatible", title="Error"
+                    )
                     break
                 except FileNotFoundError:
-                    sg.popup_error("Files not found, please select a folder",
-                    title="Error")
+                    sg.popup_error(
+                        "Files not found, please select a folder", title="Error"
+                        )
                     break
                 except OSError:
-                    sg.popup_error("Files not found, please select a folder",
-                    title="Error")
+                    sg.popup_error(
+                        "Files not found, please select a folder", title="Error"
+                        )
                 try:
-                    make_output_pick_list(combined_code_reader_list,output_pick_list,
-                                    values["-SAMPLESIN-"])
+                    make_output_pick_list(
+                        combined_code_reader_list,output_pick_list,
+                        values["-SAMPLESIN-"])
                 except IndexError:
-                    sg.popup_error("Inserted file not compatible",title="Error")
+                    sg.popup_error(
+                        "Inserted file not compatible", title="Error"
+                        )
                     break
                 except FileNotFoundError:
-                    sg.popup_error("File not found, please select a file",
-                    title="Error")
+                    sg.popup_error(
+                        "File not found, please select a file", title="Error"
+                    )
                     break
                 data =[i for i in output_pick_list[1:]]
                 window['-TABLE-'].update(values = data)
@@ -158,11 +175,15 @@ def main():
             try:
                 csv_sample_list_export(output_pick_list,values["-EXPORT-"])
             except FileNotFoundError:
-                sg.popup_error("Output folder not found, please select a folder",
-                title="Error")
+                sg.popup_error(
+                    "Output folder not found, please select a folder",
+                    title="Error"
+                )
             except OSError:
-                sg.popup_error("Output folder not found, please select a folder",
-                title="Error")
+                sg.popup_error(
+                    "Output folder not found, please select a folder",
+                    title="Error"
+                )
     window.close()
 
 if __name__ == '__main__':
