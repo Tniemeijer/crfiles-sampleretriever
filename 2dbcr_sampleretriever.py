@@ -11,6 +11,23 @@ import csv
 import datetime
 import PySimpleGUI as sg
 
+class Tube:
+    """
+    string explaining everything.
+    """
+    def __init__(self,code,rackid,tube_position,date,time):
+        self.code = code
+        self.rackid = rackid
+        self.position = tube_position
+        self.datetime = int(f'{date}{time}')
+
+    def __str__(self):
+        return (
+            f'Tubeid:{self.code}\nRackid:{self.rackid}\n'
+            f'Pos:{self.position}\nLastupdated:{self.datetime}'
+        )
+
+
 def create_output_name():
     """
     Uses the datetime module to generate a name for the outputfile
@@ -33,26 +50,39 @@ def check_duplicate_tube_entries(tubeslist):
         return False
 
 
-def make_list_crfiles(outputlist,filespath):
-    """returns source list with position, tubeID, plate barcode"""
-
+def make_list_tubeobjects(filespath):
+    """returns Tube list with position, tubeID, plate barcode"""
     os.chdir(filespath)
+    info_list = []
     for file in os.listdir('./'):
         with open(file = file, mode ='r',errors = 'ignore') as crfile:
             crfile.readline()
             for crline in crfile:
+                append = False
                 crline = crline.strip('\n')
                 crline = crline.split(',')
-                if len(crline[1]) > 0:
-                    outputlist.append(crline[0:3])
-    tubeslist = [crline[1] for crline in outputlist]
-    if check_duplicate_tube_entries(tubeslist):
-        sg.popup_error('FOUT: Er zijn duplicaten gevonden!',title="Error")
-        
-    return outputlist
+                tubeid = crline[1]
+                rackid = crline[2]
+                position = crline[0]
+                date = crline[3]
+                time = crline[4]
+                if len(info_list) > 0:
+                    for row in info_list:
+                        if row[0] == tubeid:
+                            if date >= row[3] and time >= row[4]:
+                                info_list.pop(info_list.index(row))
+                                append = True
+                        else:
+                            append = True
+                else:
+                    append = True
+                if len(tubeid) > 0 and append is True:
+                    info_list.append([tubeid, rackid, position, date, time])
+    tube_list = [Tube(row[0],row[1],row[2],row[3],row[4]) for row in info_list]
+    return tube_list
 
 
-def make_output_pick_list(combined_cr_list,outputlist, samplesheet):
+def make_output_pick_list(tube_list,outputlist, samplesheet):
     """check input list against source list
     input list should consist of position, tubeID
     output is sourceplate, sourceplate position, targetplate position"""
@@ -65,14 +95,13 @@ def make_output_pick_list(combined_cr_list,outputlist, samplesheet):
             found = False
             line = line.strip('\n')
             line = line.split(';')
-            tube = line[1]
+            target_tube = line[1]
             targetpos = line[0]
-            for crline in combined_cr_list:
-                crtube = crline[1]
-                crpos = crline[0]
-                crbarcode = crline[2]
-                if crtube == tube:
-                    outputlist.append([tube, crbarcode, crpos, targetpos])
+            for tube in tube_list:
+                if target_tube == tube.code:
+                    outputlist.append(
+                        [target_tube, tube.rackid, tube.position, targetpos]
+                        )
                     found = True
             if found:
                 pass
@@ -125,19 +154,18 @@ def main():
 
     ]
 
-    window = sg.Window("TubeFindr - v1.0.2",layout)
+    window = sg.Window("TubeFindr - v1.1.0",layout)
 
     while True:
         event, values = window.read()
         if event in (sg.WINDOW_CLOSED, "Exit"):
             break
-        combined_code_reader_list = []
         output_pick_list = []
         if event == 'Run':
             while True:
                 try:
-                    make_list_crfiles(
-                        combined_code_reader_list,values["-BCRFILES-"]
+                    combined_tubes_list = make_list_tubeobjects(
+                        values["-BCRFILES-"]
                         )
                 except IndexError:
                     sg.popup_error(
@@ -155,7 +183,7 @@ def main():
                         )
                 try:
                     make_output_pick_list(
-                        combined_code_reader_list,output_pick_list,
+                        combined_tubes_list,output_pick_list,
                         values["-SAMPLESIN-"])
                 except IndexError:
                     sg.popup_error(
