@@ -13,13 +13,19 @@ import PySimpleGUI as sg
 
 class Tube:
     """
-    string explaining everything.
+    class containing a 2d barcoded tube and parameters.
     """
     def __init__(self,code,rackid,tube_position,date,time):
+        """
+        param: self.code for the 2D code unique to this entry.
+               self.rackid for the current rack the sample is on.
+               self.position for the current/last known position of the tube.
+        """
         self.code = code
         self.rackid = rackid
         self.position = tube_position
         self.datetime = int(f'{date}{time}')
+        #date and time will be formatted
 
     def __str__(self):
         return (
@@ -38,49 +44,29 @@ def create_output_name():
     return output_name
 
 
-def check_duplicate_tube_entries(tubeslist):
-    """
-    Checks if the length of the set (without duplicates)
-    differs in length to the list with tubes.
-    """
-    tubesset = set(tubeslist)
-    if len(tubeslist) != len(tubesset):
-        return True
-    else:
-        return False
-
-
 def make_list_tubeobjects(filespath):
     """returns Tube list with position, tubeID, plate barcode"""
     os.chdir(filespath)
     info_list = []
     for file in os.listdir('./'):
-        with open(file = file, mode ='r',errors = 'ignore') as crfile:
-            crfile.readline()
-            for crline in crfile:
-                append = False
-                crline = crline.strip('\n')
-                crline = crline.split(',')
-                tubeid = crline[1]
-                rackid = crline[2]
-                position = crline[0]
-                date = crline[3]
-                time = crline[4]
-                if len(info_list) > 0:
-                    for row in info_list:
-                        if row[0] == tubeid:
-                            if date >= row[3] and time >= row[4]:
-                                info_list.pop(info_list.index(row))
-                                append = True
-                        else:
-                            append = True
-                else:
-                    append = True
-                if len(tubeid) > 0 and append is True:
-                    info_list.append([tubeid, rackid, position, date, time])
+        ext_check = file.split('.')
+        if ext_check[1] == "csv":
+            with open(file = file, mode ='r',errors = 'ignore') as crfile:
+                crfile.readline()
+                for crline in crfile:
+                    crline = crline.strip('\n')
+                    crline = crline.split(',')
+                    tubeid = crline[1]
+                    rackid = crline[2]
+                    position = crline[0]
+                    date = crline[3]
+                    time = crline[4]
+                    if len(tubeid) > 0:
+                        info_list.append([tubeid, rackid, position, date, time])
     tube_list = [Tube(row[0],row[1],row[2],row[3],row[4]) for row in info_list]
     return tube_list
-
+# While testing for tube update in multiple files, it is not updated. ??????
+# seems to work inside one file.
 
 def make_output_pick_list(tube_list,outputlist, samplesheet):
     """check input list against source list
@@ -107,7 +93,6 @@ def make_output_pick_list(tube_list,outputlist, samplesheet):
                 pass
             else:
                 outputlist.append([tube, '-', '-', targetpos])
-    
     return outputlist
 
 
@@ -189,6 +174,8 @@ def main():
                     sg.popup_error(
                         "Inserted file not compatible", title="Error"
                         )
+                    break
+                except UnboundLocalError:
                     break
                 except FileNotFoundError:
                     sg.popup_error(
