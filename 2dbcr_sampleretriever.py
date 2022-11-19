@@ -3,7 +3,7 @@ Combining code reader files, asking for the path to the samplesheet
 searching the combined codereader data for the positions of the samples
 creating a .csv with these source and target positions.
 script also checks for double barcodes.
-Author: Tim Niemeijer
+Author: Tim Niemeijer 
 """
 
 import os
