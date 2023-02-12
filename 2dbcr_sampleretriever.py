@@ -10,28 +10,7 @@ import os
 import csv
 import datetime
 import PySimpleGUI as sg
-
-class Tube:
-    """
-    class containing a 2d barcoded tube and parameters.
-    """
-    def __init__(self,code,rackid,tube_position,date,time):
-        """
-        param: self.code for the 2D code unique to this entry.
-               self.rackid for the current rack the sample is on.
-               self.position for the current/last known position of the tube.
-        """
-        self.code = code
-        self.rackid = rackid
-        self.position = tube_position
-        self.datetime = int(f'{date}{time}')
-        #date and time will be formatted
-
-    def __str__(self):
-        return (
-            f'Tubeid:{self.code}\nRackid:{self.rackid}\n'
-            f'Pos:{self.position}\nLastupdated:{self.datetime}'
-        )
+import pandas as pd
 
 
 def create_output_name():
@@ -47,24 +26,15 @@ def create_output_name():
 def make_list_tubeobjects(filespath):
     """returns Tube list with position, tubeID, plate barcode"""
     os.chdir(filespath)
-    info_list = []
+    info_list = pd.DataFrame()
     for file in os.listdir('./'):
         ext_check = file.split('.')
         if ext_check[1] == "csv":
-            with open(file = file, mode ='r',errors = 'ignore') as crfile:
-                crfile.readline()
-                for crline in crfile:
-                    crline = crline.strip('\n')
-                    crline = crline.split(',')
-                    tubeid = crline[1]
-                    rackid = crline[2]
-                    position = crline[0]
-                    date = crline[3]
-                    time = crline[4]
-                    if len(tubeid) > 0:
-                        info_list.append([tubeid, rackid, position, date, time])
-    tube_list = [Tube(row[0],row[1],row[2],row[3],row[4]) for row in info_list]
-    return tube_list
+            tubes = pd.read_csv(file,sep=',')
+            tubes = tubes.iloc[:,:5]
+            tubes = tubes.dropna()
+            info_list = pd.concat([info_list,tubes])
+    return info_list
 # While testing for tube update in multiple files, it is not updated. ??????
 # seems to work inside one file.
 
@@ -74,25 +44,28 @@ def make_output_pick_list(tube_list,outputlist, samplesheet):
     output is sourceplate, sourceplate position, targetplate position"""
 
     with open(samplesheet,'r') as sample_list:
-        header = ['tube','sourceplate','sourceplate position',
-                        'target position']
+        header = ['Tube','Sourceplate','Sourceplate position',
+                        'Target position']
         outputlist.append(header)
         for line in sample_list:
             found = False
             line = line.strip('\n')
             line = line.split(';')
-            target_tube = line[1]
+            target_tube = int(line[1])
             targetpos = line[0]
-            for tube in tube_list:
-                if target_tube == tube.code:
-                    outputlist.append(
-                        [target_tube, tube.rackid, tube.position, targetpos]
-                        )
-                    found = True
+            #assuming the target position is in the pick list
+            if target_tube in tube_list["Tube ID"].values:
+                print("yes")
+                tube_target = tube_list[tube_list["Tube ID"]==target_tube]
+                tube_rack = tube_target["Rack ID"].values[0]
+                tube_pos = tube_target["Tube Position"].values[0]
+                outputlist.append([target_tube, tube_rack, tube_pos, targetpos])
+                found = True
             if found:
                 pass
             else:
-                outputlist.append([tube, '-', '-', targetpos])
+                print("No")
+                outputlist.append([target_tube, '-', '-', targetpos])
     return outputlist
 
 
@@ -113,8 +86,8 @@ def main():
     sg.theme("Reddit")
 
     data = []
-    heading = ['tube','sourceplate','sourceplate position',
-                            'target position']                           
+    heading = ['Tube','Sourceplate','Sourceplate position',
+                            'Target position']
     layout = [
         [sg.Text("Input samplesheet:       "),sg.Input(key="-SAMPLESIN-"),
         sg.FileBrowse(file_types=(("CSV files","*.csv*"),))],
