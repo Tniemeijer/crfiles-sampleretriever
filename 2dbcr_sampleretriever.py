@@ -1,4 +1,6 @@
 """
+Tube finder
+version no. : 1.0.2
 Combining code reader files, asking for the path to the samplesheet
 searching the combined codereader data for the positions of the samples
 creating a .csv with these source and target positions.
@@ -11,7 +13,6 @@ import csv
 import datetime
 import PySimpleGUI as sg
 import pandas as pd
-
 
 def create_output_name():
     """
@@ -38,36 +39,41 @@ def make_list_tubeobjects(filespath):
 # While testing for tube update in multiple files, it is not updated. ??????
 # seems to work inside one file.
 
-def make_output_pick_list(tube_list,outputlist, samplesheet):
+def search_tube_list(tube_list, samples):
+    header = ['Tube','Sourceplate','Sourceplate position','Target position']
+    outputlist = []
+    outputlist.append(header)
+    for line in samples:
+        found = False
+        line = line.strip('\n')
+        line = line.split(';')
+        target_tube = int(line[1])
+        targetpos = line[0]
+        #assuming the target position is in the pick list
+        if target_tube in tube_list["Tube ID"].values:
+            tube_target = tube_list[tube_list["Tube ID"]==target_tube]
+            tube_rack = tube_target["Rack ID"].values[0]
+            tube_pos = tube_target["Tube Position"].values[0]
+            outputlist.append([target_tube, tube_rack, tube_pos, targetpos])
+            found = True
+        if found:
+            pass
+        else:
+            outputlist.append([target_tube, '-', '-', targetpos])
+    return outputlist
+
+def make_output_pick_list(tube_list, samplesheet, single=False):
     """check input list against source list
     input list should consist of position, tubeID
     output is sourceplate, sourceplate position, targetplate position"""
+    if single is False:
+        with open(samplesheet,'r') as sample_list:
+            out_list = search_tube_list(tube_list,sample_list)
+    else:
+        sample = [f'NaN;{samplesheet}']
+        out_list = search_tube_list(tube_list,sample)
 
-    with open(samplesheet,'r') as sample_list:
-        header = ['Tube','Sourceplate','Sourceplate position',
-                        'Target position']
-        outputlist.append(header)
-        for line in sample_list:
-            found = False
-            line = line.strip('\n')
-            line = line.split(';')
-            target_tube = int(line[1])
-            targetpos = line[0]
-            #assuming the target position is in the pick list
-            if target_tube in tube_list["Tube ID"].values:
-                print("yes")
-                tube_target = tube_list[tube_list["Tube ID"]==target_tube]
-                tube_rack = tube_target["Rack ID"].values[0]
-                tube_pos = tube_target["Tube Position"].values[0]
-                outputlist.append([target_tube, tube_rack, tube_pos, targetpos])
-                found = True
-            if found:
-                pass
-            else:
-                print("No")
-                outputlist.append([target_tube, '-', '-', targetpos])
-    return outputlist
-
+    return out_list
 
 def csv_sample_list_export(pick_list,exportdir):
     """Changes directory to exportfiles dir, creates .csv from the picklist"""
@@ -91,6 +97,7 @@ def main():
     layout = [
         [sg.Text("Input samplesheet:       "),sg.Input(key="-SAMPLESIN-"),
         sg.FileBrowse(file_types=(("CSV files","*.csv*"),))],
+        [sg.Text("Single tube:                  "),sg.Input(key="-TUBEIN-")],
         [sg.Text("BCR files folder:           "),sg.Input(key="-BCRFILES-"),
         sg.FolderBrowse()],
 
@@ -112,13 +119,12 @@ def main():
 
     ]
 
-    window = sg.Window("TubeFindr - v1.1.0",layout)
+    window = sg.Window("Tube_Finder - v1.0.2",layout, icon=r'icon.ico')
 
     while True:
         event, values = window.read()
         if event in (sg.WINDOW_CLOSED, "Exit"):
             break
-        output_pick_list = []
         if event == 'Run':
             while True:
                 try:
@@ -140,9 +146,14 @@ def main():
                         "Files not found, please select a folder", title="Error"
                         )
                 try:
-                    make_output_pick_list(
-                        combined_tubes_list,output_pick_list,
-                        values["-SAMPLESIN-"])
+                    if len(values["-TUBEIN-"]) > 0:
+                        output_pick_list = make_output_pick_list(
+                            combined_tubes_list,
+                            values["-TUBEIN-"], single=True)
+                    else:
+                        output_pick_list = make_output_pick_list(
+                            combined_tubes_list,
+                            values["-SAMPLESIN-"])
                 except IndexError:
                     sg.popup_error(
                         "Inserted file not compatible", title="Error"
