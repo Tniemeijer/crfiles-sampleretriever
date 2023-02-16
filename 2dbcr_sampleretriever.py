@@ -1,6 +1,6 @@
 """
 Tube finder
-version no. : 1.0.2
+version no. : 1.1.0
 Combining code reader files, asking for the path to the samplesheet
 searching the combined codereader data for the positions of the samples
 creating a .csv with these source and target positions.
@@ -30,14 +30,15 @@ def make_list_tubeobjects(filespath):
     info_list = pd.DataFrame()
     for file in os.listdir('./'):
         ext_check = file.split('.')
-        if ext_check[1] == "csv":
-            tubes = pd.read_csv(file,sep=',')
-            tubes = tubes.iloc[:,:5]
-            tubes = tubes.dropna()
-            info_list = pd.concat([info_list,tubes])
+        if len(ext_check) > 1:
+            if ext_check[1] == "csv":
+                tubes = pd.read_csv(file,sep=',')
+                tubes = tubes.iloc[:,:5]
+                tubes = tubes.dropna()
+                info_list = pd.concat([info_list,tubes])
+    info_list = info_list.sort_values(["Date","Time"]).drop_duplicates("Tube ID",keep="last")
     return info_list
-# While testing for tube update in multiple files, it is not updated. ??????
-# seems to work inside one file.
+
 
 def search_tube_list(tube_list, samples):
     header = ['Tube','Sourceplate','Sourceplate position','Target position']
@@ -47,7 +48,10 @@ def search_tube_list(tube_list, samples):
         found = False
         line = line.strip('\n')
         line = line.split(';')
-        target_tube = int(line[1])
+        if len(line[1]) > 1:
+            target_tube = int(line[1])
+        else:
+            target_tube = '-'
         targetpos = line[0]
         #assuming the target position is in the pick list
         if target_tube in tube_list["Tube ID"].values:
@@ -97,7 +101,7 @@ def main():
     layout = [
         [sg.Text("Input samplesheet:       "),sg.Input(key="-SAMPLESIN-"),
         sg.FileBrowse(file_types=(("CSV files","*.csv*"),))],
-        [sg.Text("Single tube:                  "),sg.Input(key="-TUBEIN-")],
+        [sg.Text("Single tube:                 "),sg.Input(key="-TUBEIN-")],
         [sg.Text("BCR files folder:           "),sg.Input(key="-BCRFILES-"),
         sg.FolderBrowse()],
 
@@ -119,7 +123,7 @@ def main():
 
     ]
 
-    window = sg.Window("Tube_Finder - v1.0.2",layout, icon=r'icon.ico')
+    window = sg.Window("Tube_Finder - v1.1.0",layout, icon=r'icon.ico')
 
     while True:
         event, values = window.read()
