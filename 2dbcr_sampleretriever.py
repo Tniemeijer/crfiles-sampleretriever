@@ -1,15 +1,13 @@
 """
 Tube finder
-version no. : 1.1.0
-Combining code reader files, asking for the path to the samplesheet
-searching the combined codereader data for the positions of the samples
-creating a .csv with these source and target positions.
-script also checks for double barcodes.
+version no. : 1.1.1
+Combining code reader files, searching either a single tube or a .csv with position and tubes.
+Program also checks for double barcodes and updates with the most recent location.
 Author: Tim Niemeijer 
+Date: 2023-03-16
 """
 
 import os
-import csv
 import datetime
 import PySimpleGUI as sg
 import pandas as pd
@@ -79,16 +77,6 @@ def make_output_pick_list(tube_list, samplesheet, single=False):
 
     return out_list
 
-def csv_sample_list_export(pick_list,exportdir):
-    """Changes directory to exportfiles dir, creates .csv from the picklist"""
-    os.chdir(exportdir)
-    with open(create_output_name(), 'w') as wrfile:
-        writer = csv.writer(wrfile)
-        data = pick_list
-        for line in data:
-            writer.writerow(line)
-
-
 def main():
     """
     Run the code
@@ -99,9 +87,9 @@ def main():
     heading = ['Tube','Sourceplate','Sourceplate position',
                             'Target position']
     layout = [
-        [sg.Text("Input samplesheet:       "),sg.Input(key="-SAMPLESIN-"),
+        [sg.Text("Input samplesheet:        "),sg.Input(key="-SAMPLESIN-"),
         sg.FileBrowse(file_types=(("CSV files","*.csv*"),))],
-        [sg.Text("Single tube:                 "),sg.Input(key="-TUBEIN-")],
+        [sg.Text("Single tube:                  "),sg.Input(key="-TUBEIN-")],
         [sg.Text("BCR files folder:           "),sg.Input(key="-BCRFILES-"),
         sg.FolderBrowse()],
 
@@ -109,13 +97,6 @@ def main():
             """Click 'Run' to run this program:""",
             size=(80, 1))],
         [sg.Button('Run')],
-        [sg.Text("Export picklist to folder:"),sg.Input(key="-EXPORT-"),
-        sg.FolderBrowse()],
-        [sg.Text(
-            """Click 'Export' to export to .csv:""",
-            size=(80, 1))],
-        [sg.Button('Export')],
-
         [sg.Table(values= data, headings= heading,
         key = '-TABLE-',
         auto_size_columns= False, def_col_width= 20,  expand_y= True,
@@ -123,7 +104,7 @@ def main():
 
     ]
 
-    window = sg.Window("Tube_Finder - v1.1.0",layout, icon=r'icon.ico')
+    window = sg.Window("Tube_Finder - v1.1.1",layout, icon=r'icon.ico')
 
     while True:
         event, values = window.read()
@@ -173,19 +154,6 @@ def main():
                 data =[i for i in output_pick_list[1:]]
                 window['-TABLE-'].update(values = data)
                 break
-        if event == 'Export':
-            try:
-                csv_sample_list_export(output_pick_list,values["-EXPORT-"])
-            except FileNotFoundError:
-                sg.popup_error(
-                    "Output folder not found, please select a folder",
-                    title="Error"
-                )
-            except OSError:
-                sg.popup_error(
-                    "Output folder not found, please select a folder",
-                    title="Error"
-                )
     window.close()
 
 if __name__ == '__main__':
